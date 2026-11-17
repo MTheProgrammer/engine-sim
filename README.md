@@ -1,4 +1,16 @@
 # Engine Simulator
+
+> **About this fork.** This is a fork of [ange-yaghi/engine-sim](https://github.com/ange-yaghi/engine-sim), the
+> open-source release of Engine Simulator by **Ange Yaghi** (AngeTheGreat), Copyright 2022, MIT licensed (see
+> [LICENSE](LICENSE)). All credit for the simulator goes to him; please support his work and the
+> [Engine Simulator community edition](https://github.com/Engine-Simulator/engine-sim-community-edition).
+>
+> The `nfs-mac` branch keeps upstream `85f7c3b` and adds, as separate commits: macOS arm64/clang build fixes;
+> an out-of-bounds write fix (`lastValveLift`); four fixes ported from
+> [danieljsinclair/engine-sim](https://github.com/danieljsinclair/engine-sim) (MIT); the synthesizer's input
+> low-pass as an audio parameter; partitioned FFT convolution on Apple platforms (Accelerate); exhaust delay
+> filters sized at the simulation frequency. It is used headless (simulator, synthesizer and script compiler, no
+> GUI) to synthesise engine sound in a game port. The licence stays MIT.
 ![Alt text](docs/public/screenshots/screenshot_v01.png?raw=true)
 ---
 # Engine Simulator has moved!
