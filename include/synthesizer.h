@@ -28,6 +28,9 @@ class Synthesizer {
             float levelerTarget = 30000.0f;
             float levelerMaxGain = 1.9f;
             float levelerMinGain = 0.00001f;
+            // nfs-mac: the input low-pass (was a hard-coded 1900 Hz): what passes of the simulated exhaust
+            // signal before the impulse response. Applied by writeInput, at most 0.4 x the input sample rate.
+            float inputLowPassCutoff = 1900.0f;
         };
 
         struct Parameters {
@@ -112,6 +115,8 @@ class Synthesizer {
 
         std::thread *m_thread;
         std::atomic<bool> m_run;
+        std::atomic<float> m_inputLowPassTarget{1900.0f};  // nfs-mac: setAudioParameters -> writeInput
+        float m_inputLowPassApplied = 1900.0f;             // writeInput's thread only
         bool m_processed;
 
         std::mutex m_inputLock;

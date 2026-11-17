@@ -2,6 +2,7 @@
 
 #include "../include/utilities.h"
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 
@@ -69,8 +70,10 @@ void Synthesizer::initialize(const Parameters &p) {
             m_audioParameters.inputSampleNoiseFrequencyCutoff,
             m_audioSampleRate);
 
-        m_filters[i].antialiasing.setCutoffFrequency(1900.0f, m_audioSampleRate);
+        m_filters[i].antialiasing.setCutoffFrequency(m_audioParameters.inputLowPassCutoff, m_audioSampleRate);
     }
+    m_inputLowPassTarget = m_audioParameters.inputLowPassCutoff;  // nfs-mac
+    m_inputLowPassApplied = m_audioParameters.inputLowPassCutoff;
 
     m_levelingFilter.p_target = m_audioParameters.levelerTarget;
     m_levelingFilter.p_maxLevel = m_audioParameters.levelerMaxGain;
@@ -171,6 +174,15 @@ void Synthesizer::waitProcessed() {
 }
 
 void Synthesizer::writeInput(const double *data) {
+    // nfs-mac: a new input low-pass cutoff (setAudioParameters) is applied here, on the thread that runs the filter.
+    const float lowPass =
+        std::min(m_inputLowPassTarget.load(), 0.4f * m_inputSampleRate);
+    if (lowPass != m_inputLowPassApplied) {
+        for (int i = 0; i < m_inputChannelCount; ++i) {
+            m_filters[i].antialiasing.setCutoffFrequency(lowPass, m_audioSampleRate);
+        }
+        m_inputLowPassApplied = lowPass;
+    }
 
     m_inputWriteOffset += (double)m_audioSampleRate / m_inputSampleRate;
     if (m_inputWriteOffset >= (double)m_inputBufferSize) {
@@ -348,4 +360,5 @@ Synthesizer::AudioParameters Synthesizer::getAudioParameters() {
 void Synthesizer::setAudioParameters(const AudioParameters &params) {
     std::lock_guard<std::mutex> lock(m_lock0);
     m_audioParameters = params;
+    m_inputLowPassTarget = params.inputLowPassCutoff;
 }
