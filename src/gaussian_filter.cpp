@@ -1,5 +1,6 @@
 #include "../include/gaussian_filter.h"
 
+#include <algorithm>
 #include <cmath>
 
 GaussianFilter::GaussianFilter() {
@@ -35,10 +36,13 @@ double GaussianFilter::evaluate(double s) const {
     const double s0 = std::floor(s_sample);
     const double s1 = std::ceil(s_sample);
     const double d = s_sample - s0;
+    // nfs-mac (from danieljsinclair/engine-sim 7447464): |s| at or past the radius read past the cache.
+    const int last = m_cacheSteps - 1;
+    const int i0 = std::min((int)s0, last), i1 = std::min((int)s1, last);
 
     return
-        (1 - d) * m_cache[(int)s0]
-        + d * m_cache[(int)s1];
+        (1 - d) * m_cache[i0]
+        + d * m_cache[i1];
 }
 
 double GaussianFilter::calculate(double s) const {

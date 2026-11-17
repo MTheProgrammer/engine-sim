@@ -166,6 +166,9 @@ void Simulator::endFrame() {
 
 void Simulator::destroy() {
     m_synthesizer.destroy();
+    // nfs-mac (from danieljsinclair/engine-sim 4e8bcf0): was leaked.
+    delete[] m_dynoTorqueSamples;
+    m_dynoTorqueSamples = nullptr;
 }
 
 void Simulator::startAudioRenderingThread() {

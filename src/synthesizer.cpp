@@ -138,20 +138,26 @@ void Synthesizer::destroy() {
 }
 
 int Synthesizer::readAudioOutput(int samples, int16_t *buffer) {
-    std::lock_guard<std::mutex> lock(m_lock0);
+    int newDataLength;
+    {
+        std::lock_guard<std::mutex> lock(m_lock0);
 
-    const int newDataLength = m_audioBuffer.size();
-    if (newDataLength >= samples) {
-        m_audioBuffer.readAndRemove(samples, buffer);
+        newDataLength = m_audioBuffer.size();
+        if (newDataLength >= samples) {
+            m_audioBuffer.readAndRemove(samples, buffer);
+        }
+        else {
+            m_audioBuffer.readAndRemove(newDataLength, buffer);
+            memset(
+                buffer + newDataLength,
+                0,
+                sizeof(int16_t) * ((size_t)samples - newDataLength));
+        }
     }
-    else {
-        m_audioBuffer.readAndRemove(newDataLength, buffer);
-        memset(
-            buffer + newDataLength,
-            0,
-            sizeof(int16_t) * ((size_t)samples - newDataLength));
-    }
-    
+    // nfs-mac (from danieljsinclair/engine-sim 6bf893e): wake the render thread as the ring drains, not only at
+    // endInputBlock, so it refills sooner (fewer underruns).
+    m_cv0.notify_one();
+
     const int samplesConsumed = std::min(samples, newDataLength);
 
     return samplesConsumed;
@@ -165,6 +171,7 @@ void Synthesizer::waitProcessed() {
 }
 
 void Synthesizer::writeInput(const double *data) {
+
     m_inputWriteOffset += (double)m_audioSampleRate / m_inputSampleRate;
     if (m_inputWriteOffset >= (double)m_inputBufferSize) {
         m_inputWriteOffset -= (double)m_inputBufferSize;
@@ -284,7 +291,6 @@ int16_t Synthesizer::renderAudio(int inputSample) {
 
     float signal = 0;
     for (int i = 0; i < m_inputChannelCount; ++i) {
-        const float r_0 = 2.0 * ((double)rand() / RAND_MAX) - 1.0;
 
         const float jitteredSample =
             m_filters[i].jitterFilter.fast_f(m_inputChannels[i].transferBuffer[inputSample]);
