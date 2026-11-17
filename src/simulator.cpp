@@ -164,6 +164,12 @@ void Simulator::endFrame() {
     m_synthesizer.endInputBlock();
 }
 
+void Simulator::setSimulationFrequency(int frequency) {
+    if (frequency == m_simulationFrequency) return;
+    m_simulationFrequency = frequency;
+    simulationFrequencyChanged();
+}
+
 void Simulator::destroy() {
     m_synthesizer.destroy();
     // nfs-mac (from danieljsinclair/engine-sim 4e8bcf0): was leaked.
