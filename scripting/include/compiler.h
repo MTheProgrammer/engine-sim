@@ -6,6 +6,7 @@
 #include "engine_sim.h"
 #include "piranha.h"
 
+#include <string>
 #include <vector>
 
 namespace es_script {
@@ -32,6 +33,10 @@ namespace es_script {
         static Output *output();
 
         void initialize();
+        // nfs-mac: resolve imports without the working directory (an absolute directory searched after the
+        // importing file's own), and write the error log to a chosen file; the host process need not chdir.
+        void addSearchPath(const std::string &path);
+        void setErrorLogPath(const std::string &path) { m_errorLogPath = path; }
         bool compile(const piranha::IrPath &path);
         Output execute();
         void destroy();
@@ -43,6 +48,7 @@ namespace es_script {
         LanguageRules m_rules;
         piranha::Compiler *m_compiler;
         piranha::NodeProgram m_program;
+        std::string m_errorLogPath = "error_log.log";
     };
 
 } /* namespace es_script */

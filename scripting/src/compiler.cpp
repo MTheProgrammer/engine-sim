@@ -29,10 +29,14 @@ void es_script::Compiler::initialize() {
     m_rules.initialize();
 }
 
+void es_script::Compiler::addSearchPath(const std::string &path) {
+    m_compiler->addSearchPath(path);
+}
+
 bool es_script::Compiler::compile(const piranha::IrPath &path) {
     bool successful = false;
 
-    std::ofstream file("error_log.log", std::ios::out);
+    std::ofstream file(m_errorLogPath, std::ios::out);
     piranha::IrCompilationUnit *unit = m_compiler->compile(path);
     if (unit == nullptr) {
         file << "Can't find file: " << path.toString() << "\n";
